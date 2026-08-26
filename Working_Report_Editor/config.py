@@ -23,29 +23,34 @@ if creds_json:
 # ============================================================
 # ⚠️ UPDATE THIS LIST WITH BRANCH-SPECIFIC EMPLOYEES
 SALES_EMPLOYEES = [
-    # Add branch employees here
-    # Example: "Employee1", "Employee2", "Employee3",
+    "Alpa","Anshu","Avantika","Sushmita","Satish",
+    "Vibhuti","Sahil","Anushka","Mayank","Alfiya",
 ]
 
-HR_EMPLOYEES = []  # No HR for branch repos
 
 # ============================================================
 # EMAIL TO NAME MAPPING - SALES ONLY
 # ============================================================
 # ⚠️ UPDATE THIS MAP WITH BRANCH-SPECIFIC EMAILS
 SALES_EMAIL_MAP = {
-    # Add branch emails here
-    # Example: "employee1.branch@gmail.com": "Employee1",
+    "alpakumari.edujam@gmail.com": "Alpa",
+    "anshu.edujam@gmail.com": "Anshu",
+    "avantikan.edujam@gmail.com": "Avantika",
+    "sushmita.edujam@gmail.com": "Sushmita",
+    "satish.edujam@gmail.com": "Satish",
+    "vibhuti.edujam@gmail.com": "Vibhuti",
+    "sahila.edujam@gmail.com": "Sahil",
+    "anushkad.edujam@gmail.com": "Anushka",
+    "mayankg.edujam@gmail.com": "Mayank",
+    "alfiyas.edujam@gmail.com": "Alfiya",
 }
 
-HR_EMAIL_MAP = {}  # No HR for branch repos
 
 # ============================================================
 # Build Gmail Query with specific senders
 # ============================================================
 ALL_SALES_EMAILS = list(SALES_EMAIL_MAP.keys())
-ALL_HR_EMAILS = []  # No HR
-ALL_ALLOWED_EMAILS = ALL_SALES_EMAILS + ALL_HR_EMAILS
+ALL_ALLOWED_EMAILS = ALL_SALES_EMAILS
 
 FROM_QUERY = " OR ".join([f"from:{email}" for email in ALL_ALLOWED_EMAILS])
 GMAIL_QUERY = f"({FROM_QUERY}) is:unread"
@@ -88,11 +93,10 @@ SALES_COLUMN_MAPPING = {
     "Report Status": 10,
 }
 
-# No HR column mapping for branch repos
-HR_COLUMN_MAPPING = {}
+
 
 SALES_HEADERS = list(SALES_COLUMN_MAPPING.keys())
-HR_HEADERS = []  # No HR headers
+
 
 # ============================================================
 # GMAIL CONFIGURATION
