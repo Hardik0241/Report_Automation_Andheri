@@ -19,6 +19,10 @@ UPDATED: Added support for "secs" plural (e.g., 18 secs)
 UPDATED: Added support for "mins" plural (e.g., 13 mins)
 UPDATED: Added support for "hr" with space (e.g., 1 hr 14m 18 secs)
 UPDATED: Added support for "mins" with spaces (e.g., 39 mins) - handles standalone minutes format
+UPDATED: Added support for "21 min 23sec" format in fallback grab_duration
+UPDATED: Added support for "29min 51sec" format in fallback grab_duration
+UPDATED: Added support for "2H 5M 13S" format in fallback grab_duration
+UPDATED: Added new duration formats to _BASE_PROMPT for Gemini
 """
 
 import json
@@ -66,7 +70,7 @@ Rules:
 - Use 0 for missing integer fields.
 - Use "00:00:00" for missing duration.
 - If the email contains "Leave" or "leave" anywhere, mark as "Leave" and skip.
-- Duration can be in formats: "1h 0m 35s", "1H 15M + 14M", "1 H 31 M", "1hr 25m 21s", "01:28:52", "02.07.36", "2.08.32", "1h 42m 8sec", "1hr 14m 21s", "1hr 25min 46s", "49 MINS 9 SEC", "1hr 9min 47sec", "58:14", "1 hr 14m 18 secs + 13 mins + 6 mins", "39 mins"
+- Duration can be in formats: "1h 0m 35s", "1H 15M + 14M", "1 H 31 M", "1hr 25m 21s", "01:28:52", "02.07.36", "2.08.32", "1h 42m 8sec", "1hr 14m 21s", "1hr 25min 46s", "49 MINS 9 SEC", "1hr 9min 47sec", "58:14", "1 hr 14m 18 secs + 13 mins + 6 mins", "39 mins", "40M 4S", "33m 46s", "32min 32sec", "49m 35s", "21 min 23sec", "29min 51sec", "2H 5M 13S"
 
 Email content:
 """
@@ -255,10 +259,35 @@ class GeminiParser:
                 if match:
                     return match.group(1).strip()
 
+                # ✅ NEW: Handle "2H 5M 13S" format (single-digit minute uppercase)
+                pattern_uppercase = rf"(?i){kw_esc}[\s]*[:=-][\s]*(\d+\s*[Hh]\s*\d+\s*[Mm]\s*\d+\s*[Ss])"
+                match = re.search(pattern_uppercase, text)
+                if match:
+                    return match.group(1).strip()
+
+                # ✅ NEW: Handle "40M 4S" format (uppercase M and S, no hours)
+                pattern_uppercase_ms = rf"(?i){kw_esc}[\s]*[:=-][\s]*(\d+\s*[Mm]\s*\d+\s*[Ss])"
+                match = re.search(pattern_uppercase_ms, text)
+                if match:
+                    return match.group(1).strip()
+
                 # ============================================================
                 # PRIORITY 2: MINUTES + SECONDS (NO HOURS)
                 # ============================================================
                 
+                # ✅ NEW: Handle "21 min 23sec" / "29min 51sec" / "32min 32sec" formats
+                # (space after min, no space before sec — must come BEFORE generic patterns)
+                pattern_min_sec = rf"(?i){kw_esc}[\s]*[:=-][\s]*(\d+\s*min\s*\d+\s*sec)"
+                match = re.search(pattern_min_sec, text)
+                if match:
+                    return match.group(1).strip()
+
+                # ✅ NEW: Handle "33m 46s" / "49m 35s" formats (lowercase m and s)
+                pattern_m_s = rf"(?i){kw_esc}[\s]*[:=-][\s]*(\d+\s*m\s*\d+\s*s)"
+                match = re.search(pattern_m_s, text)
+                if match:
+                    return match.group(1).strip()
+
                 # Handle MM:SS format (e.g., 58:14)
                 pattern_mm_ss = rf"(?i){kw_esc}[\s]*[:=-][\s]*(\d{{2}}:\d{{2}})"
                 match = re.search(pattern_mm_ss, text)
@@ -410,6 +439,30 @@ class GeminiParser:
 
         # Handle "49 MINS 9 SEC" format (uppercase full words)
         match = re.search(r'(\d+)\s*MINS?\s*(\d+)\s*SEC', text, re.IGNORECASE)
+        if match:
+            m, s = int(match.group(1)), int(match.group(2))
+            return f"00:{m:02d}:{s:02d}"
+
+        # ✅ NEW: Handle "2H 5M 13S" format (single-digit minute uppercase)
+        match = re.search(r'(\d+)\s*[Hh]\s*(\d+)\s*[Mm]\s*(\d+)\s*[Ss]', text)
+        if match:
+            h, m, s = int(match.group(1)), int(match.group(2)), int(match.group(3))
+            return f"{h:02d}:{m:02d}:{s:02d}"
+
+        # ✅ NEW: Handle "40M 4S" format (uppercase M and S, no hours)
+        match = re.search(r'(\d+)\s*[Mm]\s*(\d+)\s*[Ss]', text)
+        if match:
+            m, s = int(match.group(1)), int(match.group(2))
+            return f"00:{m:02d}:{s:02d}"
+
+        # ✅ NEW: Handle "21 min 23sec" / "29min 51sec" / "32min 32sec" formats
+        match = re.search(r'(\d+)\s*min\s*(\d+)\s*sec', text, re.IGNORECASE)
+        if match:
+            m, s = int(match.group(1)), int(match.group(2))
+            return f"00:{m:02d}:{s:02d}"
+
+        # ✅ NEW: Handle "33m 46s" / "49m 35s" formats (lowercase m and s)
+        match = re.search(r'(\d+)\s*m\s*(\d+)\s*s', text, re.IGNORECASE)
         if match:
             m, s = int(match.group(1)), int(match.group(2))
             return f"00:{m:02d}:{s:02d}"
