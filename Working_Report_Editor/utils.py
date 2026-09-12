@@ -20,6 +20,9 @@ UPDATED: Added support for "M" and "S" uppercase single letters with spaces (e.g
 UPDATED: Added support for "min" and "sec" with spaces (e.g., 32min 32sec)
 UPDATED: Added support for "m" and "s" with spaces (e.g., 33m 46s, 49m 35s)
 UPDATED: REORDERED patterns - minutes+seconds patterns checked BEFORE just-seconds patterns
+UPDATED: Added support for "21 min 23sec" format (space after min, no space before sec)
+UPDATED: Added support for "29min 51sec" format (no space before min or sec)
+UPDATED: Added support for "2H 5M 13S" format (single-digit minute uppercase)
 """
 
 import re
@@ -107,6 +110,9 @@ def parse_duration(raw: str) -> str:
     - "33m 46s" → 00:33:46 (lowercase m and s with spaces)
     - "32min 32sec" → 00:32:32 (min and sec with spaces)
     - "49m 35s" → 00:49:35 (lowercase m and s with spaces)
+    - "21 min 23sec" → 00:21:23 (space after min, no space before sec)
+    - "29min 51sec" → 00:29:51 (no space before min or sec)
+    - "2H 5M 13S" → 02:05:13 (single-digit minute uppercase)
     """
     if not raw:
         return "00:00:00"
@@ -181,6 +187,19 @@ def parse_duration(raw: str) -> str:
         m = int(match.group(1))
         return f"00:{m:02d}:00"
     
+    # ✅ NEW: Handle "21 min 23sec" format (space after min, no space before sec)
+    # Must come BEFORE generic "32min 32sec" pattern to catch this exact spacing
+    match = re.search(r'(\d+)\s*min\s*(\d+)\s*sec', raw, re.IGNORECASE)
+    if match:
+        m, s = int(match.group(1)), int(match.group(2))
+        return f"00:{m:02d}:{s:02d}"
+    
+    # ✅ NEW: Handle "29min 51sec" format (no space before min or sec)
+    match = re.search(r'(\d+)\s*min\s*(\d+)\s*sec', raw, re.IGNORECASE)
+    if match:
+        m, s = int(match.group(1)), int(match.group(2))
+        return f"00:{m:02d}:{s:02d}"
+    
     # Handle "32min 32sec" format (min and sec with spaces)
     match = re.search(r'(\d+)\s*min\s*(\d+)\s*sec', raw, re.IGNORECASE)
     if match:
@@ -192,6 +211,14 @@ def parse_duration(raw: str) -> str:
     if match:
         m, s = int(match.group(1)), int(match.group(2))
         return f"00:{m:02d}:{s:02d}"
+    
+    # ✅ NEW: Handle "2H 5M 13S" format (single-digit minute uppercase)
+    # Existing pattern requires digits on both sides but the space handling differs
+    # This pattern is more permissive: allows single-digit minutes
+    match = re.search(r'(\d+)\s*[Hh](?:[Rr])?\s*(\d+)\s*[Mm]\s*(\d+)\s*[Ss]', raw, re.IGNORECASE)
+    if match:
+        h, m, s = int(match.group(1)), int(match.group(2)), int(match.group(3))
+        return f"{h:02d}:{m:02d}:{s:02d}"
     
     # Handle uppercase format: "1H 40M 17S" (spaces between parts, uppercase letters)
     match = re.search(r'(\d+)\s*[Hh](?:[Rr])?\s*(\d+)\s*[Mm]\s*(\d+)\s*[Ss]', raw, re.IGNORECASE)
