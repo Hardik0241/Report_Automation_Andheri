@@ -22,7 +22,7 @@ if creds_json:
 # ============================================================
 SALES_EMPLOYEES = [
     "Alpa", "Anshu", "Avantika", "Sushmita", "Satish",
-    "Vibhuti", "Sahil", "Mayank", "Alfiya", "Vidhi", "Urja",
+    "Vibhuti", "Sahil", "Alfiya", "Vidhi", "Urja",
 ]
 
 # ============================================================
@@ -36,7 +36,6 @@ SALES_EMAIL_MAP = {
     "satish.edujam@gmail.com": "Satish",
     "vibhuti.edujam@gmail.com": "Vibhuti",
     "sahila.edujam@gmail.com": "Sahil",
-    "mayankg.edujam@gmail.com": "Mayank",
     "alfiyas.edujam@gmail.com": "Alfiya",
     "vidhir.edujam@gmail.com": "Vidhi",
     "urjar.edujam@gmail.com": "Urja",
@@ -54,7 +53,7 @@ GMAIL_QUERY = f"({FROM_QUERY}) is:unread"
 # ============================================================
 # MAX EMAILS PER RUN
 # ============================================================
-MAX_EMAILS_PER_RUN = 40
+MAX_EMAILS_PER_RUN = 20
 
 # ============================================================
 # SALES DEADLINE RULE - 09:00 PM IST
